@@ -1,0 +1,1 @@
+"""HirexAI application package."""
