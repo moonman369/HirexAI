@@ -52,6 +52,7 @@ class JobsRepository:
         jd_text: str | None = None,
         match_score: float | None = None,
         status: str | None = None,
+        extra_fields: dict[str, Any] | None = None,
     ) -> UpdateResult:
         """Update job processing fields for a job."""
         update_fields: dict[str, Any] = {"updated_at": datetime.now(timezone.utc)}
@@ -61,6 +62,8 @@ class JobsRepository:
             update_fields["match_score"] = match_score
         if status is not None:
             update_fields["status"] = status
+        if extra_fields:
+            update_fields.update(extra_fields)
 
         result = self.collection.update_one({"job_id": job_id}, {"$set": update_fields})
         logger.info(
