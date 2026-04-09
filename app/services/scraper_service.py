@@ -37,6 +37,10 @@ def playwright_fetch_html(url: str, *, timeout_ms: int = 30_000, wait_until: str
         browser = playwright.chromium.launch(headless=True)
         page = browser.new_page()
         page.goto(url, wait_until=wait_until, timeout=timeout_ms)
+        try:
+            page.wait_for_load_state("networkidle", timeout=min(timeout_ms, 10_000))
+        except Exception:
+            logger.debug("playwright_networkidle_timeout url=%s timeout_ms=%s", url, timeout_ms)
         html = page.content()
         browser.close()
         return html
@@ -72,7 +76,11 @@ class ScraperService:
 
     def scrape_with_raw_html(self, *, job_id: str, user_id: str, url: str) -> ScrapeResult:
         """Return extracted text and source HTML for downstream debugging."""
-        raw_html = self.html_fetcher(url)
+        try:
+            raw_html = self.html_fetcher(url)
+        except Exception:
+            logger.exception("scrape_fetch_failed job_id=%s user_id=%s url=%s", job_id, user_id, url)
+            raise
 
         try:
             text = self.text_extractor(raw_html)

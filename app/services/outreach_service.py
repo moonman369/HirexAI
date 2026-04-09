@@ -10,6 +10,7 @@ class OutreachGeneratorClient(Protocol):
 
     def generate(self, prompt: str) -> str:
         """Return a generated message string."""
+        ...
 
 
 def build_referral_prompt(*, jd_text: str, resume_highlights: list[str]) -> str:

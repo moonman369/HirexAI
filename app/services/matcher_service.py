@@ -12,6 +12,7 @@ class EmbeddingClient(Protocol):
 
     def embed(self, text: str) -> list[float]:
         """Return a dense vector for the provided text."""
+        ...
 
 
 @dataclass(slots=True)
@@ -28,6 +29,7 @@ class ReasoningClient(Protocol):
 
     def summarize_fit(self, *, jd_text: str, resume_text: str, similarity_score: float) -> tuple[list[str], list[str]]:
         """Return strengths and gaps lists."""
+        ...
 
 
 def cosine_similarity(left: list[float], right: list[float]) -> float:

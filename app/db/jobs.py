@@ -75,3 +75,7 @@ class JobsRepository:
             result.modified_count,
         )
         return result
+
+    def get_job_by_id(self, job_id: str) -> dict[str, Any] | None:
+        """Return a single job document by its external job_id."""
+        return self.collection.find_one({"job_id": job_id})

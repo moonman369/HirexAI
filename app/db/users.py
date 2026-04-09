@@ -52,3 +52,13 @@ class UsersRepository:
             result.upserted_id,
         )
         return result
+
+    def get_resume_text(self, user_id: str) -> str | None:
+        """Return stored resume text for a user when available."""
+        document = self.collection.find_one({"user_id": user_id}, {"resume_text": 1, "_id": 0})
+        if not document:
+            return None
+        resume_text = document.get("resume_text")
+        if isinstance(resume_text, str) and resume_text.strip():
+            return resume_text
+        return None

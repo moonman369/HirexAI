@@ -12,12 +12,19 @@ from pymongo.database import Database
 DEFAULT_DB_NAME = "hirexai"
 
 
+def _required_env(name: str, *, default: str | None = None) -> str:
+    value = os.getenv(name, default)
+    if not value:
+        raise RuntimeError(f"Missing required environment variable: {name}")
+    return value
+
+
 def _mongo_uri() -> str:
-    return os.getenv("MONGO_URI", "mongodb://localhost:27017")
+    return _required_env("MONGO_URI")
 
 
 def _mongo_db_name() -> str:
-    return os.getenv("MONGO_DB", DEFAULT_DB_NAME)
+    return _required_env("MONGO_DB", default=DEFAULT_DB_NAME)
 
 
 @lru_cache(maxsize=1)

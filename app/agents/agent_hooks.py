@@ -10,6 +10,20 @@ from app.services.outreach_service import OutreachService
 from app.services.scraper_service import ScraperService
 
 
+def get_openclaw_tool_definitions() -> list[dict[str, str]]:
+    """Return lightweight OpenClaw-friendly tool definitions for orchestration."""
+    return [
+        {"name": "scrape_job", "hook": "run_scrape_hook", "description": "Scrape JD text + raw HTML from job URL."},
+        {"name": "match_job", "hook": "run_match_hook", "description": "Compute match score with strengths and gaps."},
+        {"name": "decide_job", "hook": "run_decision_hook", "description": "Apply shortlist threshold decision rule."},
+        {
+            "name": "generate_outreach",
+            "hook": "run_outreach_hook",
+            "description": "Generate referral outreach text from JD + resume highlights.",
+        },
+    ]
+
+
 def run_scrape_hook(
     *,
     scraper_service: ScraperService,
