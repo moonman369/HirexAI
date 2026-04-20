@@ -1,4 +1,4 @@
-"""API schemas for job ingestion and lookup endpoints."""
+"""API schemas for job ingestion and outreach endpoints."""
 
 from __future__ import annotations
 
@@ -23,3 +23,11 @@ class JobIngestionResponse(BaseModel):
 
 class JobStatusResponse(BaseModel):
     job: dict[str, Any]
+
+
+class OutreachSyncRequest(BaseModel):
+    job_id: str | None = None
+
+
+class OutreachActionResponse(BaseModel):
+    result: dict[str, Any]
