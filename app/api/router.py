@@ -8,7 +8,14 @@ from fastapi.encoders import jsonable_encoder
 
 from app.db.jobs import JobsRepository
 from app.db.users import UsersRepository
-from app.models.schemas import JobIngestionRequest, JobIngestionResponse, JobStatusResponse
+from app.models.schemas import (
+    JobIngestionRequest,
+    JobIngestionResponse,
+    JobStatusResponse,
+    OutreachActionResponse,
+    OutreachSyncRequest,
+)
+from app.services.manual_outreach_service import ManualOutreachService
 from app.services.pipeline_orchestrator import PipelineJob
 from app.services.runtime import build_pipeline_orchestrator, validate_runtime_configuration
 
@@ -107,3 +114,43 @@ def get_job_status(job_id: str) -> JobStatusResponse:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
 
     return JobStatusResponse(job=jsonable_encoder(job))
+
+
+@api_router.post("/outreach/{job_id}/send-connections", response_model=OutreachActionResponse)
+def send_connection_requests(job_id: str) -> OutreachActionResponse:
+    try:
+        result = ManualOutreachService().send_connection_requests(job_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)) from exc
+    return OutreachActionResponse(result=result)
+
+
+@api_router.post("/outreach/sync", response_model=OutreachActionResponse)
+def sync_connection_statuses(payload: OutreachSyncRequest) -> OutreachActionResponse:
+    try:
+        result = ManualOutreachService().sync_connection_statuses(payload.job_id)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)) from exc
+    return OutreachActionResponse(result=result)
+
+
+@api_router.post("/outreach/{job_id}/generate-referrals", response_model=OutreachActionResponse)
+def generate_referral_drafts(job_id: str) -> OutreachActionResponse:
+    try:
+        result = ManualOutreachService().generate_referral_drafts(job_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)) from exc
+    return OutreachActionResponse(result=result)
+
+
+@api_router.post("/outreach/{job_id}/send-referrals", response_model=OutreachActionResponse)
+def send_approved_referral_messages(job_id: str) -> OutreachActionResponse:
+    try:
+        result = ManualOutreachService().send_approved_referral_messages(job_id)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)) from exc
+    return OutreachActionResponse(result=result)

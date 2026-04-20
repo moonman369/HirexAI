@@ -7,6 +7,7 @@ from app.services.decision_service import (
     SHORTLISTED,
 )
 from app.services.matcher_service import MatchResult, MatcherService
+from app.services.manual_outreach_service import ManualOutreachService
 from app.services.outreach_service import OutreachService
 from app.services.pipeline_orchestrator import PipelineJob, PipelineOrchestrator
 from app.services.scraper_service import ScrapeResult, ScraperService
@@ -18,6 +19,7 @@ __all__ = [
     "SHORTLISTED",
     "MatchResult",
     "MatcherService",
+    "ManualOutreachService",
     "OutreachService",
     "PipelineJob",
     "PipelineOrchestrator",
