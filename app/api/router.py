@@ -39,7 +39,13 @@ def _run_pipeline_jobs(jobs: list[PipelineJob]) -> None:
         logger.info("pipeline_background event=end jobs=%s", len(jobs))
 
 
-@api_router.post("/jobs", response_model=JobIngestionResponse, status_code=status.HTTP_202_ACCEPTED)
+@api_router.post(
+    "/jobs",
+    response_model=JobIngestionResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    tags=["Jobs"],
+    summary="Queue jobs for processing",
+)
 def ingest_jobs(payload: JobIngestionRequest, background_tasks: BackgroundTasks) -> JobIngestionResponse:
     logger.info("api_event=ingest_jobs_start user_id=%s incoming_urls=%s", payload.user_id, len(payload.job_urls))
 
@@ -103,7 +109,12 @@ def ingest_jobs(payload: JobIngestionRequest, background_tasks: BackgroundTasks)
     )
 
 
-@api_router.get("/jobs/{job_id}", response_model=JobStatusResponse)
+@api_router.get(
+    "/jobs/{job_id}",
+    response_model=JobStatusResponse,
+    tags=["Jobs"],
+    summary="Get processing status for a job",
+)
 def get_job_status(job_id: str) -> JobStatusResponse:
     try:
         job = JobsRepository().get_job_by_id(job_id)
@@ -116,7 +127,12 @@ def get_job_status(job_id: str) -> JobStatusResponse:
     return JobStatusResponse(job=jsonable_encoder(job))
 
 
-@api_router.post("/outreach/{job_id}/send-connections", response_model=OutreachActionResponse)
+@api_router.post(
+    "/outreach/{job_id}/send-connections",
+    response_model=OutreachActionResponse,
+    tags=["Outreach"],
+    summary="Send LinkedIn connection requests",
+)
 def send_connection_requests(job_id: str) -> OutreachActionResponse:
     try:
         result = ManualOutreachService().send_connection_requests(job_id)
@@ -127,7 +143,12 @@ def send_connection_requests(job_id: str) -> OutreachActionResponse:
     return OutreachActionResponse(result=result)
 
 
-@api_router.post("/outreach/sync", response_model=OutreachActionResponse)
+@api_router.post(
+    "/outreach/sync",
+    response_model=OutreachActionResponse,
+    tags=["Outreach"],
+    summary="Sync connection statuses from provider",
+)
 def sync_connection_statuses(payload: OutreachSyncRequest) -> OutreachActionResponse:
     try:
         result = ManualOutreachService().sync_connection_statuses(payload.job_id)
@@ -136,7 +157,12 @@ def sync_connection_statuses(payload: OutreachSyncRequest) -> OutreachActionResp
     return OutreachActionResponse(result=result)
 
 
-@api_router.post("/outreach/{job_id}/generate-referrals", response_model=OutreachActionResponse)
+@api_router.post(
+    "/outreach/{job_id}/generate-referrals",
+    response_model=OutreachActionResponse,
+    tags=["Outreach"],
+    summary="Generate referral message drafts",
+)
 def generate_referral_drafts(job_id: str) -> OutreachActionResponse:
     try:
         result = ManualOutreachService().generate_referral_drafts(job_id)
@@ -147,7 +173,12 @@ def generate_referral_drafts(job_id: str) -> OutreachActionResponse:
     return OutreachActionResponse(result=result)
 
 
-@api_router.post("/outreach/{job_id}/send-referrals", response_model=OutreachActionResponse)
+@api_router.post(
+    "/outreach/{job_id}/send-referrals",
+    response_model=OutreachActionResponse,
+    tags=["Outreach"],
+    summary="Send approved referral messages",
+)
 def send_approved_referral_messages(job_id: str) -> OutreachActionResponse:
     try:
         result = ManualOutreachService().send_approved_referral_messages(job_id)
