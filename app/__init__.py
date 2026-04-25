@@ -1,0 +1,1 @@
+"""HirexAI backend application package."""
