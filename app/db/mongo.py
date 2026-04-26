@@ -38,4 +38,6 @@ def init_indexes() -> None:
 
     users.create_index("email", unique=True)
     profiles.create_index("user_id", unique=True)
+    job_runs.create_index("user_id")
+    job_runs.create_index("created_at")
     job_runs.create_index([("user_id", 1), ("created_at", -1)])

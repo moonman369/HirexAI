@@ -1,25 +1,45 @@
 from __future__ import annotations
 
+import base64
+import hashlib
 from datetime import datetime, timedelta, timezone
 
+import bcrypt
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 
 from app.config import settings
 
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+bearer_scheme = HTTPBearer(
+    auto_error=False,
+    scheme_name="BearerAuth",
+    description="Paste JWT access token returned by /auth/login or /auth/signup",
+)
+
+
+def _password_bytes(password: str) -> bytes:
+    # Pre-hash keeps bcrypt input short/consistent and avoids 72-byte limit failures.
+    digest = hashlib.sha256(password.encode("utf-8")).digest()
+    return base64.b64encode(digest)
 
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    hashed = bcrypt.hashpw(_password_bytes(password), bcrypt.gensalt()).decode("utf-8")
+    return f"sha256_bcrypt${hashed}"
 
 
 def verify_password(plain_password: str, password_hash: str) -> bool:
-    return pwd_context.verify(plain_password, password_hash)
+    try:
+        if password_hash.startswith("sha256_bcrypt$"):
+            stored_hash = password_hash.split("$", 1)[1].encode("utf-8")
+            return bcrypt.checkpw(_password_bytes(plain_password), stored_hash)
+
+        # Backward compatibility with existing raw bcrypt hashes.
+        return bcrypt.checkpw(plain_password.encode("utf-8"), password_hash.encode("utf-8"))
+    except (ValueError, TypeError):
+        return False
 
 
 def create_access_token(user_id: str, email: str, expires_minutes: int | None = None) -> str:
@@ -44,8 +64,16 @@ def decode_access_token(token: str) -> dict:
         ) from exc
 
 
-def get_current_user_claims(token: str = Depends(oauth2_scheme)) -> dict:
-    claims = decode_access_token(token)
+def get_current_user_claims(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+) -> dict:
+    if not credentials or credentials.scheme.lower() != "bearer":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing bearer token",
+        )
+
+    claims = decode_access_token(credentials.credentials)
     if "sub" not in claims:
         raise HTTPException(status_code=401, detail="Malformed token payload")
     return claims
