@@ -4,7 +4,7 @@ import logging
 from typing import Any
 
 from jd_processor import clean_job_description
-from job_fetcher import fetch_jobs_indeed
+from job_fetcher import fetch_jobs as fetch_jobs_from_sources
 
 
 logger = logging.getLogger(__name__)
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 def fetch_jobs(role: str, location: str | None, limit: int) -> list[dict[str, str]]:
     logger.info("fetch_jobs.start role=%s location=%s limit=%s", role, location, limit)
     try:
-        jobs = fetch_jobs_indeed(target_role=role, location=location, limit=limit)
+        jobs = fetch_jobs_from_sources(role=role, location=location, limit=limit)
         logger.info("fetch_jobs.success role=%s count=%s", role, len(jobs))
         return jobs
     except Exception:
